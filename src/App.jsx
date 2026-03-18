@@ -156,13 +156,24 @@ export default function App() {
     setIsSending(true);
 
     try {
-      const reply = await sendMessageToAI(trimmed);
+      const reply = await sendMessageToAI(trimmed, [...messages, userMessage]);
       setMessages((current) => [
         ...current,
         {
           id: `assistant-${Date.now()}`,
           role: 'assistant',
           content: reply,
+        },
+      ]);
+    } catch (error) {
+      setMessages((current) => [
+        ...current,
+        {
+          id: `assistant-error-${Date.now()}`,
+          role: 'assistant',
+          content:
+            error?.message ||
+            'I had trouble reaching the AI service just now. Please try again in a moment.',
         },
       ]);
     } finally {
@@ -182,7 +193,12 @@ export default function App() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:88px_88px] opacity-25" />
 
       <main className="relative z-10">
-        <Hero3D mood={orbMood} active={isSending} onStartConversation={() => setChatOpen(true)} />
+        <Hero3D
+          mood={orbMood}
+          active={isSending}
+          chatOpen={chatOpen}
+          onStartConversation={() => setChatOpen(true)}
+        />
 
         <section className="mx-auto w-full max-w-[1600px] px-6 pb-10 sm:px-10 lg:px-16">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.52fr)]">

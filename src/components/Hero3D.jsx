@@ -3,7 +3,7 @@ import HeroCanvas from './HeroCanvas';
 
 const statusSteps = ['Listening...', 'Analyzing patterns...', 'Understanding your mood...'];
 
-export default function Hero3D({ mood, active, onStartConversation }) {
+export default function Hero3D({ mood, active, chatOpen, onStartConversation }) {
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
   const springX = useSpring(pointerX, { stiffness: 120, damping: 20, mass: 0.8 });
@@ -132,6 +132,12 @@ export default function Hero3D({ mood, active, onStartConversation }) {
         <div className="absolute inset-0 rounded-[38px] bg-[radial-gradient(circle_at_20%_20%,rgba(124,92,255,0.22),transparent_30%),radial-gradient(circle_at_80%_25%,rgba(56,189,248,0.14),transparent_28%),radial-gradient(circle_at_50%_90%,rgba(45,212,191,0.12),transparent_28%)] blur-3xl" />
         <motion.div
           style={{ transform: orbTransform }}
+          animate={{
+            filter: chatOpen ? 'blur(5px) saturate(0.85)' : 'blur(0px) saturate(1)',
+            opacity: chatOpen ? 0.55 : 1,
+            scale: chatOpen ? 0.96 : 1,
+          }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
           className="relative overflow-hidden rounded-[38px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] shadow-[0_35px_90px_rgba(2,8,23,0.55)] backdrop-blur-2xl"
         >
           <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 text-xs uppercase tracking-[0.28em] text-cyan-100/54">
