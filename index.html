@@ -4,16 +4,32 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
     <meta
       name="description"
-      content="A premium 3D AI mental health companion experience."
+      content="MindOrbit is a premium AI mental health companion with streaming chat, voice support, journaling, and mood insights."
     />
-    <title>Solace AI Companion</title>
+    <meta name="theme-color" content="#05070F" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <title>MindOrbit</title>
   </head>
   <body>
+    <script>
+      window.addEventListener('error', function(e) {
+        var el = document.createElement('div');
+        el.style.cssText = 'position:fixed;top:0;left:0;z-index:9999;background:red;color:white;padding:20px;font-family:monospace;white-space:pre-wrap;box-sizing:border-box;width:100%;';
+        el.innerText = 'Error: ' + e.message + '\n' + e.filename + ':' + e.lineno + '\n\n' + (e.error ? e.error.stack : '');
+        document.body.appendChild(el);
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        var el = document.createElement('div');
+        el.style.cssText = 'position:fixed;top:0;left:0;z-index:9999;background:red;color:white;padding:20px;font-family:monospace;white-space:pre-wrap;box-sizing:border-box;width:100%;';
+        el.innerText = 'Unhandled Promise Rejection:\n' + (e.reason && e.reason.stack ? e.reason.stack : e.reason);
+        document.body.appendChild(el);
+      });
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
-  </html>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "MindOrbit",
+  "short_name": "MindOrbit",
+  "description": "A premium AI mental health companion with streaming chat, voice support, journaling, and mood insights.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05070F",
+  "theme_color": "#05070F",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

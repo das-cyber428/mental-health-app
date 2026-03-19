@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import AIOrb from './AIOrb';
 import ParticleField from './ParticleField';
 
-function Scene({ mood, active, onOrbClick }) {
+function Scene({ mood, active, aiState, musicProfile, onOrbClick }) {
   return (
     <>
       <color attach="background" args={['#050816']} />
@@ -14,10 +14,17 @@ function Scene({ mood, active, onOrbClick }) {
       <pointLight position={[4, -2, 2]} intensity={12} color="#1fd6ff" />
       <pointLight position={[-4, -2, -1]} intensity={10} color="#20d6c7" />
 
-      <ParticleField count={1600} />
+      <ParticleField count={1400} />
 
       <Float speed={1.2} rotationIntensity={0.25} floatIntensity={0.7}>
-        <AIOrb mood={mood} active={active} onClick={onOrbClick} position={[0.15, 0.2, 0]} />
+        <AIOrb
+          mood={mood}
+          active={active}
+          aiState={aiState}
+          musicProfile={musicProfile}
+          onClick={onOrbClick}
+          position={[0.15, 0.2, 0]}
+        />
       </Float>
 
       <mesh position={[0, -2.4, 0]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -38,7 +45,7 @@ function Scene({ mood, active, onOrbClick }) {
   );
 }
 
-export default function HeroCanvas({ mood, active, onOrbClick }) {
+export default function HeroCanvas({ mood, active, aiState, musicProfile, onOrbClick }) {
   return (
     <div className="h-full w-full">
       <Canvas
@@ -47,7 +54,13 @@ export default function HeroCanvas({ mood, active, onOrbClick }) {
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>
-          <Scene mood={mood} active={active} onOrbClick={onOrbClick} />
+          <Scene
+            mood={mood}
+            active={active}
+            aiState={aiState}
+            musicProfile={musicProfile}
+            onOrbClick={onOrbClick}
+          />
         </Suspense>
       </Canvas>
     </div>

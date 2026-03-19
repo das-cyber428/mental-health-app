@@ -50,9 +50,20 @@ const moodSettings = {
   },
 };
 
+const stateModifiers = {
+  'Listening...': { boost: 1.08, halo: 0.16, jitter: 0.01 },
+  'Thinking...': { boost: 1.2, halo: 0.2, jitter: 0.02 },
+  'Responding...': { boost: 1.35, halo: 0.22, jitter: 0.008 },
+  Idle: { boost: 1, halo: 0.12, jitter: 0 },
+  Responded: { boost: 1.05, halo: 0.14, jitter: 0 },
+  'Needs attention': { boost: 0.94, halo: 0.1, jitter: 0.012 },
+};
+
 export default function AIOrb({
   mood = 'neutral',
   active = false,
+  aiState = 'Idle',
+  musicProfile,
   onClick,
   position = [0, 0, 0],
 }) {
@@ -62,14 +73,14 @@ export default function AIOrb({
   const haloRef = useRef(null);
   const [hovered, setHovered] = useState(false);
 
-  const currentMood = useMemo(
-    () => moodSettings[mood] ?? moodSettings.neutral,
-    [mood],
-  );
+  const currentMood = useMemo(() => moodSettings[mood] ?? moodSettings.neutral, [mood]);
+  const stateModifier = stateModifiers[aiState] ?? stateModifiers.Idle;
+  const musicEnergy = musicProfile?.isPlaying ? 0.78 + (musicProfile.energy ?? 0.45) * 0.8 : 0.9;
+  const musicGlow = musicProfile?.isPlaying ? 0.08 + (musicProfile.energy ?? 0.45) * 0.18 : 0;
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    const activityBoost = active ? 1.45 : 1;
+    const activityBoost = (active ? 1.25 : 1) * stateModifier.boost * musicEnergy;
     const pulse =
       1 +
       Math.sin(t * currentMood.pulseSpeed * activityBoost) *
@@ -77,14 +88,16 @@ export default function AIOrb({
         (active ? 1.18 : 1);
     const hoverScale = hovered ? 1.06 : 1;
     const scale = pulse * hoverScale;
+    const jitter = stateModifier.jitter ? Math.sin(t * 22) * stateModifier.jitter : 0;
 
     if (coreRef.current) {
-      coreRef.current.scale.setScalar(scale);
+      coreRef.current.scale.set(scale + jitter, scale - jitter * 0.6, scale);
       coreRef.current.rotation.y += currentMood.rotationSpeed * (active ? 1.5 : 1);
       coreRef.current.rotation.x = Math.sin(t * 0.38) * 0.11;
+      coreRef.current.position.x = jitter * 0.35;
       coreRef.current.material.emissiveIntensity = THREE.MathUtils.lerp(
         coreRef.current.material.emissiveIntensity,
-        (hovered ? 2.2 : currentMood.dimness) + (active ? 0.5 : 0),
+        (hovered ? 2.2 : currentMood.dimness) + (active ? 0.45 : 0) + stateModifier.halo + musicGlow,
         0.08,
       );
       coreRef.current.material.color.lerp(new THREE.Color(currentMood.core), 0.08);
@@ -102,7 +115,7 @@ export default function AIOrb({
     }
 
     if (ringRef.current) {
-      ringRef.current.rotation.z += currentMood.rotationSpeed * (active ? 0.9 : 0.45);
+      ringRef.current.rotation.z += currentMood.rotationSpeed * (active ? 0.9 : 0.45) * stateModifier.boost;
       ringRef.current.material.opacity = THREE.MathUtils.lerp(
         ringRef.current.material.opacity,
         hovered ? 0.55 : active ? 0.42 : 0.28,
@@ -112,10 +125,10 @@ export default function AIOrb({
     }
 
     if (haloRef.current) {
-      haloRef.current.scale.setScalar(1.9 + Math.sin(t * 0.7) * 0.05);
+      haloRef.current.scale.setScalar(1.9 + Math.sin(t * 0.7) * 0.05 + stateModifier.halo * 0.15);
       haloRef.current.material.opacity = THREE.MathUtils.lerp(
         haloRef.current.material.opacity,
-        active ? 0.18 : mood === 'sad' ? 0.08 : 0.12,
+        active ? 0.18 + stateModifier.halo * 0.2 + musicGlow * 0.5 : mood === 'sad' ? 0.08 : 0.12 + musicGlow * 0.35,
         0.08,
       );
       haloRef.current.material.color.lerp(new THREE.Color(currentMood.emissive), 0.08);

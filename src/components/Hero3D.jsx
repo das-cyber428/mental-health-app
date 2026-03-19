@@ -1,9 +1,21 @@
+import { Suspense, lazy } from 'react';
 import { motion, useMotionTemplate, useMotionValue, useSpring } from 'framer-motion';
-import HeroCanvas from './HeroCanvas';
 
-const statusSteps = ['Listening...', 'Analyzing patterns...', 'Understanding your mood...'];
+const HeroCanvas = lazy(() => import('./HeroCanvas'));
 
-export default function Hero3D({ mood, active, chatOpen, onStartConversation }) {
+const statusSteps = ['Listening...', 'Thinking...', 'Responding...'];
+
+export default function Hero3D({
+  mood,
+  active,
+  aiState,
+  musicProfile,
+  currentTrack,
+  isMusicPlaying,
+  chatOpen,
+  onStartConversation,
+  onOpenMusic,
+}) {
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
   const springX = useSpring(pointerX, { stiffness: 120, damping: 20, mass: 0.8 });
@@ -61,8 +73,8 @@ export default function Hero3D({ mood, active, chatOpen, onStartConversation }) 
           transition={{ duration: 0.7, delay: 0.24 }}
           className="mt-6 max-w-xl text-base leading-8 text-slate-300/70"
         >
-          MindOrbit listens gently, learns how you feel over time, and helps you
-          reflect with calm, personalized guidance.
+          MindOrbit now streams replies in real time, remembers your reflections per
+          account, and adapts across chat, voice, journaling, and installable mobile use.
         </motion.p>
 
         <motion.div
@@ -106,9 +118,9 @@ export default function Hero3D({ mood, active, chatOpen, onStartConversation }) 
           className="mt-12 grid gap-4 sm:grid-cols-3"
         >
           {[
-            'Emotion-aware AI support',
-            'Journaling that reflects back patterns',
-            'Insights designed to reduce noise',
+            'Streaming replies that arrive token by token',
+            'Voice input and playback for calmer hands-free support',
+            'Per-user insights, check-ins, and installable mobile behavior',
           ].map((item) => (
             <motion.div
               key={item}
@@ -119,6 +131,45 @@ export default function Hero3D({ mood, active, chatOpen, onStartConversation }) 
             </motion.div>
           ))}
         </motion.div>
+
+        {currentTrack ? (
+          <motion.button
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.56 }}
+            whileHover={{ y: -3, boxShadow: '0 18px 42px rgba(8,12,26,0.35)' }}
+            whileTap={{ scale: 0.98 }}
+            type="button"
+            onClick={onOpenMusic}
+            className="mt-6 flex w-full max-w-xl items-center gap-4 rounded-[26px] border border-white/10 bg-white/6 p-3 text-left backdrop-blur-xl"
+          >
+            <div className="relative h-16 w-16 overflow-hidden rounded-[18px] border border-white/10">
+              <motion.img
+                animate={isMusicPlaying ? { rotate: 360 } : { rotate: 0 }}
+                transition={
+                  isMusicPlaying
+                    ? { duration: 20, repeat: Number.POSITIVE_INFINITY, ease: 'linear' }
+                    : { duration: 0.4 }
+                }
+                src={currentTrack.thumbnail}
+                alt={currentTrack.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] uppercase tracking-[0.28em] text-cyan-100/56">
+                Mood Music
+              </p>
+              <p className="mt-2 truncate text-base font-medium text-white">{currentTrack.title}</p>
+              <p className="truncate text-xs uppercase tracking-[0.18em] text-cyan-100/58">
+                {currentTrack.artist}
+              </p>
+            </div>
+            <div className="shrink-0 rounded-full border border-cyan-200/18 bg-cyan-300/10 px-4 py-2 text-xs uppercase tracking-[0.2em] text-cyan-50">
+              {isMusicPlaying ? 'Playing' : 'Open'}
+            </div>
+          </motion.button>
+        ) : null}
       </motion.div>
 
       <motion.div
@@ -145,22 +196,33 @@ export default function Hero3D({ mood, active, chatOpen, onStartConversation }) 
             <span className="capitalize text-white/72">{mood}</span>
           </div>
           <div className="relative h-[420px] sm:h-[520px] lg:h-[760px]">
-            <HeroCanvas mood={mood} active={active} onOrbClick={onStartConversation} />
+            <Suspense fallback={null}>
+              <HeroCanvas
+                mood={mood}
+                active={active}
+                aiState={aiState}
+                musicProfile={musicProfile}
+                onOrbClick={onStartConversation}
+              />
+            </Suspense>
             <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-wrap gap-3 px-5 pb-5">
-              {statusSteps.map((step, index) => (
+              {statusSteps.map((step) => (
                 <motion.div
                   key={step}
                   animate={{
-                    opacity: active ? [0.42, 1, 0.42] : 0.62,
-                    y: active ? [0, -2, 0] : 0,
+                    opacity: aiState === step ? [0.42, 1, 0.42] : 0.62,
+                    y: aiState === step ? [0, -2, 0] : 0,
                   }}
                   transition={{
                     duration: 2.4,
-                    delay: index * 0.18,
-                    repeat: Number.POSITIVE_INFINITY,
+                    repeat: aiState === step ? Number.POSITIVE_INFINITY : 0,
                     ease: 'easeInOut',
                   }}
-                  className="rounded-full border border-white/10 bg-slate-950/34 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-cyan-50/68 backdrop-blur-xl"
+                  className={`rounded-full border px-4 py-2 text-[11px] uppercase tracking-[0.22em] backdrop-blur-xl ${
+                    aiState === step
+                      ? 'border-cyan-200/18 bg-cyan-300/10 text-cyan-50'
+                      : 'border-white/10 bg-slate-950/34 text-cyan-50/68'
+                  }`}
                 >
                   {step}
                 </motion.div>

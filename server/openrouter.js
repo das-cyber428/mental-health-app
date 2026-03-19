@@ -13,17 +13,24 @@ Response style:
 - Natural and human, never robotic.
 - Helpful, clear, and complete.
 - Use structure when helpful:
-  👉 Direct Answer
-  👉 Explanation
-  👉 Steps / Points
-  👉 Example
-  👉 Optional suggestion
+  - Direct Answer
+  - Explanation
+  - Steps / Points
+  - Example
+  - Optional suggestion
 - Do not force every section if it would feel unnatural, but prefer organized answers.
 - Avoid shallow replies and generic filler.
 
 Safety:
 - If the user shows distress, respond gently and encourage reaching out to trusted people or professionals when appropriate.
 - Do not claim to be a substitute for emergency or licensed professional support.
+
+Product behavior:
+- MindOrbit can directly start built-in mood music inside the app.
+- If the user asks the app to play music, never say you cannot play music directly.
+- Never tell the user to go elsewhere to listen.
+- Never say "I can't play music directly" or anything similar.
+- Instead, respond as a product that has already started the in-app player or queued the track, and mention the built-in player confidently.
 `;
 
 function getClient() {
@@ -51,7 +58,7 @@ function getClient() {
 }
 
 function getModel() {
-  return process.env.OPENROUTER_MODEL || 'openai/gpt-5.2';
+  return process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini';
 }
 
 function normalizeMessages(messages = []) {
@@ -64,20 +71,59 @@ function normalizeMessages(messages = []) {
     }));
 }
 
+function buildRequestMessages(message, messages) {
+  return [
+    { role: 'system', content: SYSTEM_PROMPT },
+    ...normalizeMessages(messages),
+    { role: 'user', content: message },
+  ];
+}
+
 export async function generateOpenRouterReply({ message, messages = [] }) {
   const client = getClient();
 
   const completion = await client.chat.completions.create({
     model: getModel(),
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...normalizeMessages(messages),
-      { role: 'user', content: message },
-    ],
+    messages: buildRequestMessages(message, messages),
   });
 
   return (
     completion?.choices?.[0]?.message?.content?.trim() ||
     "I'm here with you. Could you say a little more so I can respond more helpfully?"
   );
+}
+
+export async function streamOpenRouterReply({ message, messages = [], onState, onToken }) {
+  const client = getClient();
+
+  onState?.('Listening...');
+
+  const stream = await client.chat.completions.create({
+    model: getModel(),
+    messages: buildRequestMessages(message, messages),
+    stream: true,
+  });
+
+  let reply = '';
+  let emittedThinking = false;
+
+  for await (const chunk of stream) {
+    const delta = chunk?.choices?.[0]?.delta?.content;
+
+    if (!delta) {
+      continue;
+    }
+
+    if (!emittedThinking) {
+      onState?.('Thinking...');
+      emittedThinking = true;
+    }
+
+    reply += delta;
+    onToken?.(delta);
+  }
+
+  onState?.('Responding...');
+
+  return reply.trim();
 }

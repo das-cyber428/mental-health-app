@@ -1,11 +1,44 @@
 import { motion } from 'framer-motion';
 import { useId } from 'react';
 
+function MicIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.7]">
+      <path d="M12 4a3 3 0 0 1 3 3v5a3 3 0 1 1-6 0V7a3 3 0 0 1 3-3Z" />
+      <path d="M18 11a6 6 0 0 1-12 0" />
+      <path d="M12 17v3" />
+      <path d="M8 20h8" />
+    </svg>
+  );
+}
+
+function SendIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.8]">
+      <path d="m4 12 15-8-4 8 4 8-15-8Z" />
+    </svg>
+  );
+}
+
+function SpeakerIcon({ enabled }) {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.7]">
+      <path d="M5 10v4h4l5 4V6l-5 4H5Z" />
+      {enabled ? <path d="M17 9a4 4 0 0 1 0 6" /> : <path d="m17 9 3 6" />}
+    </svg>
+  );
+}
+
 export default function InputBar({
   draft,
   isSending,
   onChange,
   onSubmit,
+  isListening,
+  voiceSupported,
+  onToggleListening,
+  voicePlaybackEnabled,
+  onToggleVoicePlayback,
 }) {
   const id = useId();
 
@@ -16,13 +49,40 @@ export default function InputBar({
           Message
         </label>
 
+        <div className="mb-3 flex items-center justify-between gap-3 px-1 text-[11px] uppercase tracking-[0.22em] text-white/48">
+          <span>{isListening ? 'Listening now' : 'Share what you are feeling'}</span>
+          <button
+            type="button"
+            onClick={() => onToggleVoicePlayback?.(!voicePlaybackEnabled)}
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] transition ${
+              voicePlaybackEnabled
+                ? 'border-cyan-200/18 bg-cyan-300/10 text-cyan-50'
+                : 'border-white/10 bg-white/5 text-white/62'
+            }`}
+          >
+            <SpeakerIcon enabled={voicePlaybackEnabled} />
+            Voice
+          </button>
+        </div>
+
         <div className="flex items-end gap-3">
           <button
             type="button"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/8 bg-white/5 text-base text-slate-300/72 transition hover:border-cyan-200/22 hover:text-white"
-            aria-label="Voice input"
+            onClick={onToggleListening}
+            disabled={!voiceSupported}
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-slate-300 transition ${
+              isListening
+                ? 'border-cyan-200/24 bg-cyan-300/12 text-cyan-50 shadow-[0_0_0_1px_rgba(120,240,255,0.12)]'
+                : 'border-white/8 bg-white/5 hover:border-cyan-200/22 hover:text-white'
+            } disabled:cursor-not-allowed disabled:opacity-35`}
+            aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
           >
-            <span aria-hidden="true">🎤</span>
+            <motion.span
+              animate={isListening ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+              transition={{ duration: 1.1, repeat: isListening ? Number.POSITIVE_INFINITY : 0 }}
+            >
+              <MicIcon />
+            </motion.span>
           </button>
 
           <textarea
@@ -42,7 +102,7 @@ export default function InputBar({
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-violet-500 via-blue-500 to-cyan-400 text-white shadow-[0_14px_30px_rgba(53,108,255,0.34)] transition disabled:cursor-not-allowed disabled:opacity-45"
             aria-label="Send message"
           >
-            <span aria-hidden="true">➤</span>
+            <SendIcon />
           </motion.button>
         </div>
       </div>
