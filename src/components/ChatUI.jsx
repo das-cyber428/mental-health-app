@@ -227,7 +227,7 @@ export default function ChatUI({
 
             <SuggestionChips suggestions={suggestions} onSelect={setDraft} />
 
-            <div className="sticky bottom-0 pb-[calc(env(safe-area-inset-bottom,0px))]">
+            <div className="sticky bottom-0 pb-6 pt-2 bg-[rgba(10,15,30,0.9)] backdrop-blur-md">
               <InputBar
                 draft={draft}
                 isSending={isSending}

@@ -132,7 +132,7 @@ export default function MiniPlayer({
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-3 px-1 lg:hidden">
+      <div className="hidden lg:flex mt-3 items-center gap-3 px-1">
         <span className="text-[11px] uppercase tracking-[0.18em] text-white/38">Volume</span>
         <input
           type="range"
